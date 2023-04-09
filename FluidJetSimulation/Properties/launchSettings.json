@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "FluidJetSimulation (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "FluidJetSimulation (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
