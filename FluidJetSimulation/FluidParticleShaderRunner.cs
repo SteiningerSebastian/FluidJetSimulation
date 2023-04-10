@@ -1,6 +1,5 @@
 ﻿using ComputeSharp;
 using ComputeSharp.WinUI;
-using Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
