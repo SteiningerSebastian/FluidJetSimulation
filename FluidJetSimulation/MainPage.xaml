@@ -9,11 +9,15 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:computesharp="using:ComputeSharp.WinUI"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    Width="1000"
+    Height="1000">
     <Page.DataContext>
         <local:MainViewmodel/>
     </Page.DataContext>
     <computesharp:AnimatedComputeShaderPanel
+        Width="1000"
+        Height="1000"
         x:Name="ShaderPanel"
         IsDynamicResolutionEnabled="{x:Bind viewModel.IsDynamicResolutionEnabled, Mode=OneWay}"
         IsPaused="{x:Bind viewModel.IsRenderingPaused, Mode=OneWay}"

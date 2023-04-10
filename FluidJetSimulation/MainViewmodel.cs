@@ -13,7 +13,7 @@ namespace FluidJetSimulation {
         /// </summary>
         public MainViewmodel() {
             this.isVerticalSyncEnabled = false;
-            this.isDynamicResolutionEnabled = true;
+            this.isDynamicResolutionEnabled = false;
             this.isRenderingPaused = false;
             this.selectedResolutionScale = 11;
             this.shaderRunner = IOCContainer.Instance.GetInstance<IShaderRunner>();

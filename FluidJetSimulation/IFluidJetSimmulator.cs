@@ -1,4 +1,6 @@
-﻿using ComputeSharp.WinUI;
+﻿using ComputeSharp;
+using ComputeSharp.Resources;
+using ComputeSharp.WinUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +17,12 @@ namespace FluidJetSimulation {
         /// <summary>
         /// The simulation particles.
         /// </summary>
-        public List<SimulationParticle> SimulationParticles { get; }
+        public List<Float4> SimulationParticles { get; }
+
+        /// <summary>
+        /// The texture to simulate the wind.
+        /// </summary>
+        public ReadWriteTexture2D<float4> WindTexture { get; }
 
         /// <summary>
         /// The acceleration due to gravity, 9.81 m/s^2 for earth.
@@ -30,7 +37,7 @@ namespace FluidJetSimulation {
         /// <summary>
         /// The radius of the particle when rendered.
         /// </summary>
-        public float ParticleRenderRadius { get;  }
+        public float ParticleRenderRadius { get; }
 
         /// <summary>
         /// The density of the simulated fluid.
@@ -55,7 +62,7 @@ namespace FluidJetSimulation {
         /// <summary>
         /// The pressure of the jet at the beginning to calculate the particle velocity
         /// </summary>
-        public  float Pressure { get; }
+        public float Pressure { get; }
 
         /// <summary>
         /// The amount of particles spawnd per second.
@@ -86,5 +93,26 @@ namespace FluidJetSimulation {
         /// Standard deviation for velocity
         /// </summary>
         public float VelocityStandardDev { get; }
+
+        /// <summary>
+        /// The resolution of the wind.
+        /// </summary>
+        public int WindResolution { get; }
+
+        /// <summary>
+        /// The Velocity of the wind.
+        /// </summary>
+        public float VelocityWindX { get; }
+
+        /// <summary>
+        /// The Velocity of the wind.
+        /// </summary>
+        public float VelocityWindY { get; }
+
+        /// <summary>
+        /// The amout of slipstream in the wind.
+        /// </summary>
+        public float SlipstreamFactor { get; }
+
     }
 }

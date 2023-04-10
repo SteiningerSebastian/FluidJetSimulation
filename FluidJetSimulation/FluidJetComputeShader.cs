@@ -10,8 +10,8 @@ namespace FluidJetSimulation {
     [AutoConstructor]
     public readonly partial struct FluidJetComputeShader : IComputeShader {
 
-        public readonly ReadOnlyBuffer<SimulationParticle> buffer;
-        public readonly ReadWriteBuffer<float4> writeBuffer;
+        public readonly ReadWriteBuffer<float4> buffer;
+        public readonly ReadWriteTexture2D<float4> windTexture;
         public readonly float ambientDensity;
         public readonly float dragCoefficient;
         public readonly float particleSimulationArea;
@@ -20,18 +20,23 @@ namespace FluidJetSimulation {
         public readonly float simulationStep;
 
         public void Execute() {
-            SimulationParticle particle = buffer[ThreadIds.X];
-            float velocity2 = particle.velocityY * particle.velocityY + particle.velocityX * particle.velocityX;
+            float4 particle = buffer[ThreadIds.X];
+            float pvx = particle.Z + windTexture[ThreadIds.XY].X;
+            float pvy = particle.W + windTexture[ThreadIds.XY].Y;
+            float velocity2 = pvx * pvx + pvy * pvy;
+
             float fwres = -0.5f * ambientDensity * dragCoefficient * particleSimulationArea * velocity2;
-            float alpha = Hlsl.Atan(particle.velocityY / particle.velocityX);
+            
+            float alpha = Hlsl.Atan(pvy / pvx);
             float fwy = Hlsl.Sin(alpha) * fwres;
             float fwx = Hlsl.Cos(alpha) * fwres;
+
             float fy = fwy - accelerationDueToGravity * mass;
-            float vy = particle.velocityY + fy / mass * simulationStep;
-            float vx = particle.velocityX + fwx / mass * simulationStep;
-            float posX = particle.positionX + (vx + particle.velocityX) / 2f * simulationStep;
-            float posY = particle.positionY + (vy + particle.velocityY) / 2f * simulationStep;
-            writeBuffer[ThreadIds.X] = new Float4(posX, posY, vx, vy);
+            float vy = particle.W + fy / mass * simulationStep;
+            float vx = particle.Z + fwx / mass * simulationStep;
+            float posX = particle.X + (vx + particle.Z) / 2f * simulationStep;
+            float posY = particle.Y + (vy + particle.W) / 2f * simulationStep;
+            buffer[ThreadIds.X] = new Float4(posX, posY, vx, vy);
         }
     }
 }

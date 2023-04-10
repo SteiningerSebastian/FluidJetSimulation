@@ -1,8 +1,10 @@
 ﻿using ComputeSharp;
+using ComputeSharp.Resources;
 using ComputeSharp.WinUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,16 +44,28 @@ namespace FluidJetSimulation {
         public float InitPositionY => float.Parse(Variables["p0Y"]);
         ///<inheritdoc/>
         public float VelocityStandardDev => float.Parse(Variables["stdev"]);
+        ///<inheritdoc/>
+        public int WindResolution => 1250;
+        ///<inheritdoc/>
+        public float VelocityWindX => float.Parse(Variables["vw0x"]);
+        ///<inheritdoc/>
+        public float VelocityWindY => float.Parse(Variables["vw0y"]);
+        ///<inheritdoc/>
+        public float SlipstreamFactor => float.Parse(Variables["sf"]);
+        ///<inheritdoc/>
+        public ReadWriteTexture2D<float4> WindTexture { get; protected set; }
 
         /// <summary>
         /// The mass of the particle
         /// </summary>
         public float Mass => 4f / 3f * (float)Math.PI * ParticleSimulationRadius * ParticleSimulationRadius * ParticleSimulationRadius * FluidDensity;
         /// <inheritdoc/>
-        public List<SimulationParticle> SimulationParticles { get; protected set; } = new List<SimulationParticle>();
+        public List<Float4> SimulationParticles { get; protected set; } = new List<Float4>(100);
 
         public FluidJetSimulator() {
             Variables = IOCContainer.Instance.GetInstance<ISimulationVariables>(InstanceType.Singleton);
+
+            WindTexture = GraphicsDevice.GetDefault().AllocateReadWriteTexture2D<float4>(WindResolution, WindResolution);
         }
 
         /// <summary>
@@ -63,6 +77,7 @@ namespace FluidJetSimulation {
         /// The time the last particle was spawned.
         /// </summary>
         private long lastSpawn = -1;
+
 
         /// <summary>
         /// Start the simulation.
@@ -84,43 +99,40 @@ namespace FluidJetSimulation {
             return v + randNormal;
         }
 
-        private SimulationParticle GetInitParticle() {            
+        private Float4 GetInitParticle() {
             var velocity = Math.Sqrt(2 * Pressure / FluidDensity);
             var vx = GetRandomVelocity((float)(Math.Cos(AngleOfAttack) * velocity));
             var vy = GetRandomVelocity((float)(Math.Sin(AngleOfAttack) * velocity));
 
-            return new SimulationParticle(InitPositionX, InitPositionY, vx, vy);
+            return new Float4(InitPositionX, InitPositionY, vx, vy);
         }
 
         /// <summary>
         /// Execute the simulation-step.
         /// </summary>
         private void Execute() {
-            var _temp = SimulationParticles;
-
             //Spawn particles to simulate.
             if (_simulationTime - lastSpawn > 1 / ParticleSpawnRate * 1000000) {
+                long particlesToSpawn = (long)((_simulationTime - lastSpawn) / (1 / ParticleSpawnRate * 1000000));
+                for (int i = 0; i < particlesToSpawn; i++)
+                    SimulationParticles.Add(GetInitParticle());
                 lastSpawn = _simulationTime;
-                _temp.Add(GetInitParticle());
             }
 
-            if (_temp.Count > 0)
-                using (ReadOnlyBuffer<SimulationParticle> buffer = GraphicsDevice.GetDefault().AllocateReadOnlyBuffer(_temp.ToArray())) {
-                    using (ReadWriteBuffer<float4> writeBuffer = GraphicsDevice.GetDefault().AllocateReadWriteBuffer<float4>(_temp.Count)) {
-                        GraphicsDevice.GetDefault().For(buffer.Length, new FluidJetComputeShader(buffer, writeBuffer, AmbientDensity, DragCoefficient, ParticleSimulationArea, AccelerationDueToGravity, Mass, this.SimulationStep));
-                        var _par = writeBuffer.ToArray();
-                        SimulationParticles = _par.Select(p => new SimulationParticle(p.X, p.Y, p.Z, p.W)).ToList();
-                    }
+            if (SimulationParticles.Count > 0) {
+                Span<float4> particles = CollectionsMarshal.AsSpan(SimulationParticles);
+                using (ReadWriteBuffer<Float4> buffer = GraphicsDevice.GetDefault().AllocateReadWriteBuffer<float4>(particles)) {
+                    //Simulate wind.
+                    WindTexture.GraphicsDevice.For(WindResolution, WindResolution, new WindComputeShader(WindTexture, buffer, new Float2(VelocityWindX, VelocityWindY), Scale, SimulationStep, SlipstreamFactor, ParticleSimulationRadius));
+
+                    //Simulate particle movement
+                    GraphicsDevice.GetDefault().For(buffer.Length, new FluidJetComputeShader(buffer, WindTexture, AmbientDensity, DragCoefficient, ParticleSimulationArea, AccelerationDueToGravity, Mass, this.SimulationStep));
+                    SimulationParticles = new List<float4>(buffer.ToArray());
                 }
-
-            //Remove particles not visible
-            for (int i = 0; i < SimulationParticles.Count;) {
-                var particle = SimulationParticles[i];
-                if (particle.positionY < 0)
-                    SimulationParticles.RemoveAt(i);
-                else
-                    i++;
             }
+        
+            //Remove particles not visible
+            SimulationParticles.RemoveAll((p) => p.Y < 0);
 
             //Make the step in simulated time.
             _simulationTime += (long)(SimulationStep * 1000000);

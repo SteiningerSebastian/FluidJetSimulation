@@ -11,6 +11,8 @@ namespace FluidJetSimulation {
             get => Data.FirstOrDefault(v => v.GetId().Equals(id))?.Value??throw new NullReferenceException(id);
         }
 
+        public Variable GetVar(string id) => Data.FirstOrDefault(v => v.GetId().Equals(id)) ?? throw new NullReferenceException(id);
+
         public void Add(string id, string name, string value) {
             Data.Add(new Variable(id, name, value));
         }
