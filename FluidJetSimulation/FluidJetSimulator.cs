@@ -45,7 +45,7 @@ namespace FluidJetSimulation {
         ///<inheritdoc/>
         public float VelocityStandardDev => float.Parse(Variables["stdev"]);
         ///<inheritdoc/>
-        public int WindResolution => 1250;
+        public int WindResolution => 1000;
         ///<inheritdoc/>
         public float VelocityWindX => float.Parse(Variables["vw0x"]);
         ///<inheritdoc/>
