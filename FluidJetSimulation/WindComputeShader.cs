@@ -39,6 +39,10 @@ namespace FluidJetSimulation {
         /// The radius of the particle.
         /// </summary>
         public readonly float radius;
+        /// <summary>
+        /// The radius of the particle.
+        /// </summary>
+        public readonly float windSpeedFactor;
 
         private float4 GetPixelFromVelocity(float2 velocity) {
             float4 pixel = new float4();
@@ -69,8 +73,8 @@ namespace FluidJetSimulation {
                     hit = true;
                     float dvx = velocity.X - simulationParticles[i].Z;
                     float dvy = velocity.Y - simulationParticles[i].W;
-                    velocity.X -= dvx / 2f;
-                    velocity.Y -= dvy / 2f;
+                    velocity.X -= dvx * windSpeedFactor;
+                    velocity.Y -= dvy * windSpeedFactor;
                 }
             }
 

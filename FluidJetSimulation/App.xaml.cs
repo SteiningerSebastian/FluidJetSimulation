@@ -44,22 +44,25 @@ namespace FluidJetSimulation {
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args) {
             var obj = new SimulationVariables();
             obj.Add("g", "AccelerationDueToGravity", "9.81");
-            obj.Add("r", "Radius", "0.5");
+            obj.Add("r", "Radius", "0.03");
             obj.Add("rr", "RenderRadius", "0.5");
-            obj.Add("dm", "AmbientDensity", "1");
-            obj.Add("cw", "DragCoefficient", "5");
+            obj.Add("dm", "AmbientDensity", "1.2");
+            obj.Add("cw", "DragCoefficient", "0.075");
+            obj.Add("m0", "Mass", "0.01");
             obj.Add("dsobj", "FluidDensity", "1000");
             obj.Add("p0", "Pressure", "8");
-            obj.Add("alpha", "AngleOfAttack", "45");
+            obj.Add("alpha", "AngleOfAttack", "35");
             obj.Add("psr", "ParticleSpawnRate", "100");
             obj.Add("step", "SimulationStep", "0.025");
-            obj.Add("scale", "Scale", "0.11");
-            obj.Add("p0X", "InitPositionX", "3");
-            obj.Add("p0Y", "InitPositionY", "10");
+            obj.Add("scale", "Scale", "0.1");
+            obj.Add("p0X", "InitPositionX", "1");
+            obj.Add("p0Y", "InitPositionY", "2.5");
             obj.Add("stdev", "VelocityStandardDev", "1");
-            obj.Add("vw0x", "VelocityWindX", "3");
+            obj.Add("vw0x", "VelocityWindX", "0");
             obj.Add("vw0y", "VelocityWindY", "0");
             obj.Add("sf", "SlipstreamFactor", "1");
+            obj.Add("wsf", "WindSpeedDeltaFactor", "1");
+            obj.Add("wer", "WindEffectRadius", "0.5");
 
             IOCContainer.Instance.Register<ISimulationVariables, SimulationVariables>(obj);
             IOCContainer.Instance.Register<IShaderRunner, FluidParticleShaderRunner>();
@@ -71,6 +74,10 @@ namespace FluidJetSimulation {
             m_window.Content = new MainPage();
             m_window.Title = "Visualization";
             m_window.Activate();
+
+            m_window.Closed += (_, _) => {
+                Application.Current.Exit();
+            };
 
             t_window = new Window();
             t_window.Content = new DataPage();

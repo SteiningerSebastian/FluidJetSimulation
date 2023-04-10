@@ -45,6 +45,11 @@ namespace FluidJetSimulation {
         public float FluidDensity { get; }
 
         /// <summary>
+        /// The radius of the particle when rendered.
+        /// </summary>
+        public float Mass { get; }
+
+        /// <summary>
         /// Density of the ambient fluid/gas e.g. air.
         /// </summary>
         public float AmbientDensity { get; }
@@ -114,5 +119,14 @@ namespace FluidJetSimulation {
         /// </summary>
         public float SlipstreamFactor { get; }
 
+        /// <summary>
+        /// The amout of slipstream in the wind.
+        /// </summary>
+        public float WindSpeedFactor { get; }
+
+        /// <summary>
+        /// The radius for the slipstream.
+        /// </summary>
+        public float WindEffectRadius { get; }
     }
 }

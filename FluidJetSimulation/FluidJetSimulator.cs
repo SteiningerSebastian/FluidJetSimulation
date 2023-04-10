@@ -53,14 +53,20 @@ namespace FluidJetSimulation {
         ///<inheritdoc/>
         public float SlipstreamFactor => float.Parse(Variables["sf"]);
         ///<inheritdoc/>
+        public float WindSpeedFactor => float.Parse(Variables["wsf"]);
+        ///<inheritdoc/>
         public ReadWriteTexture2D<float4> WindTexture { get; protected set; }
+        ///<inheritdoc/>
+        public float WindEffectRadius => float.Parse(Variables["wer"]);
+
 
         /// <summary>
         /// The mass of the particle
         /// </summary>
-        public float Mass => 4f / 3f * (float)Math.PI * ParticleSimulationRadius * ParticleSimulationRadius * ParticleSimulationRadius * FluidDensity;
+        public float Mass => float.Parse(Variables["m0"]);/*4f / 3f * (float)Math.PI * ParticleSimulationRadius * ParticleSimulationRadius * ParticleSimulationRadius * FluidDensity;*/
         /// <inheritdoc/>
         public List<Float4> SimulationParticles { get; protected set; } = new List<Float4>(100);
+
 
         public FluidJetSimulator() {
             Variables = IOCContainer.Instance.GetInstance<ISimulationVariables>(InstanceType.Singleton);
@@ -123,7 +129,7 @@ namespace FluidJetSimulation {
                 Span<float4> particles = CollectionsMarshal.AsSpan(SimulationParticles);
                 using (ReadWriteBuffer<Float4> buffer = GraphicsDevice.GetDefault().AllocateReadWriteBuffer<float4>(particles)) {
                     //Simulate wind.
-                    WindTexture.GraphicsDevice.For(WindResolution, WindResolution, new WindComputeShader(WindTexture, buffer, new Float2(VelocityWindX, VelocityWindY), Scale, SimulationStep, SlipstreamFactor, ParticleSimulationRadius));
+                    WindTexture.GraphicsDevice.For(WindResolution, WindResolution, new WindComputeShader(WindTexture, buffer, new Float2(VelocityWindX, VelocityWindY), Scale, SimulationStep, SlipstreamFactor, WindEffectRadius, WindSpeedFactor));
 
                     //Simulate particle movement
                     GraphicsDevice.GetDefault().For(buffer.Length, new FluidJetComputeShader(buffer, WindTexture, AmbientDensity, DragCoefficient, ParticleSimulationArea, AccelerationDueToGravity, Mass, this.SimulationStep));
