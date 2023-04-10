@@ -10,7 +10,13 @@ using System.Threading.Tasks;
 
 namespace FluidJetSimulation;
 public class FluidParticleShaderRunner : IShaderRunner {
+    private CancellationToken ct;
+    public FluidParticleShaderRunner(CancellationToken ct = default) {
+        this.ct = ct;
+    }
+
     public FluidParticleShaderRunner() {
+        this.ct = default;
     }
 
     private float GetVelocity2(float4 p) => p.Z * p.Z + p.W * p.W;
@@ -67,6 +73,9 @@ public class FluidParticleShaderRunner : IShaderRunner {
     }
 
     public bool TryExecute(IReadWriteNormalizedTexture2D<float4> texture, TimeSpan timespan, object parameter) {
+        if(ct.IsCancellationRequested) 
+            return false;
+
         var sim = IOCContainer.Instance.GetInstance<IFluidJetSimmulator>(InstanceType.Singleton);
         Span<float4> span = CollectionsMarshal.AsSpan(sim.SimulationParticles);
         if (span.Length <= 0)

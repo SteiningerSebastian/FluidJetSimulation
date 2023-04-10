@@ -16,7 +16,7 @@ namespace FluidJetSimulation {
             this.isDynamicResolutionEnabled = false;
             this.isRenderingPaused = false;
             this.selectedResolutionScale = 11;
-            this.shaderRunner = IOCContainer.Instance.GetInstance<IShaderRunner>();
+            this.shaderRunner = IOCContainer.Instance.GetInstance<IShaderRunner>(InstanceType.Singleton);
         }
 
         /// <summary>

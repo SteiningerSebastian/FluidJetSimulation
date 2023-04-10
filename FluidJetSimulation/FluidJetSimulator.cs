@@ -90,7 +90,7 @@ namespace FluidJetSimulation {
         /// </summary>
         /// <param name="ct">The cancellation token to cancel the simulation.</param>
         /// <returns>Returns a running task.</returns>
-        public Task StartSimulation(CancellationToken ct = default) => Task.Run(async () => {
+        public Task StartSimulation(CancellationToken ct = default) => Task.Run(() => {
             while (!ct.IsCancellationRequested) {
                 Execute();
             }

@@ -13,9 +13,12 @@ using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
@@ -65,9 +68,14 @@ namespace FluidJetSimulation {
             obj.Add("wer", "WindEffectRadius", "0.5");
 
             IOCContainer.Instance.Register<ISimulationVariables, SimulationVariables>(obj);
-            IOCContainer.Instance.Register<IShaderRunner, FluidParticleShaderRunner>();
+            CancellationTokenSource cts = new CancellationTokenSource();
+
+            var fpsrunner = new FluidParticleShaderRunner(cts.Token);
+            IOCContainer.Instance.Register<IShaderRunner, FluidParticleShaderRunner>(fpsrunner);
+
             var sim = new FluidJetSimulator();
-            _ = sim.StartSimulation();
+            Task taskSim = sim.StartSimulation(cts.Token);
+
             IOCContainer.Instance.Register<IFluidJetSimmulator, FluidJetSimulator>(sim);
 
             m_window = new Window();
@@ -75,8 +83,13 @@ namespace FluidJetSimulation {
             m_window.Title = "Visualization";
             m_window.Activate();
 
-            m_window.Closed += (_, _) => {
-                Application.Current.Exit();
+            m_window.Closed += async (_, _) => {
+                cts.Cancel();
+                await taskSim;
+                this.Exit();
+                //Because I could not find a better solution. (Background process does not finish)
+                foreach (var p in Process.GetProcessesByName("FluidJetSimulation"))
+                    p.Kill();
             };
 
             t_window = new Window();
